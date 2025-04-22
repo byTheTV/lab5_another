@@ -1,8 +1,14 @@
 package commandManagers;
 
-import models.*;
 import java.time.LocalDate;
 import java.util.Scanner;
+
+import models.Color;
+import models.Coordinates;
+import models.FormOfEducation;
+import models.Location;
+import models.Person;
+import models.StudyGroup;
 
 public class InputReader {
     private final Scanner scanner;
@@ -17,9 +23,13 @@ public class InputReader {
         while (true) {
             try {
                 setter.run();
-                break; // Выходим из цикла, если setter выполнился успешно
+                break;
             } catch (Exception e) {
-                System.out.println("Ошибка в поле '" + fieldName + "': " + e.getMessage() + ". Попробуйте снова.");
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println("Ошибка в поле '" + fieldName + "': " + e.getMessage() + ". Попробуйте снова.");
+                } else {
+                    throw e;
+                }
             }
         }
     }
@@ -31,7 +41,11 @@ public class InputReader {
             System.out.print(prompt + " > ");
         }
         String input = scanner.nextLine().trim();
-        return (defaultValue != null && input.isEmpty()) ? defaultValue : input;
+        System.out.println("DEBUG: Read name: " + input + " (mode: " + mode + ")");
+        if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+            return defaultValue;
+        }
+        return input;
     }
 
     public Coordinates readCoordinates(Coordinates defaultValue) {
@@ -46,6 +60,7 @@ public class InputReader {
                     System.out.print(xPrompt + " > ");
                 }
                 String xInput = scanner.nextLine().trim();
+                System.out.println("DEBUG: Read X: " + xInput + " (mode: " + mode + ")");
                 x = (defaultValue != null && xInput.isEmpty())
                         ? defaultValue.getX()
                         : Long.parseLong(xInput);
@@ -58,17 +73,12 @@ public class InputReader {
                     System.out.print(yPrompt + " > ");
                 }
                 String yInput = scanner.nextLine().trim();
+                System.out.println("DEBUG: Read Y: " + yInput + " (mode: " + mode + ")");
                 y = (defaultValue != null && yInput.isEmpty())
                         ? defaultValue.getY()
                         : Long.parseLong(yInput);
 
                 return new Coordinates(x, y);
-            } catch (NumberFormatException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println(e.getMessage());
-                } else {
-                    throw e;
-                }
             } catch (IllegalArgumentException e) {
                 if (mode == CommandMode.CLI_UserMode) {
                     System.out.println(e.getMessage());
@@ -79,7 +89,6 @@ public class InputReader {
         }
     }
 
-
     public Long readStudentsCount(Long defaultValue) {
         while (true) {
             try {
@@ -89,21 +98,15 @@ public class InputReader {
                     System.out.print(prompt + " > ");
                 }
                 String input = scanner.nextLine().trim();
+                System.out.println("DEBUG: Read students count: " + input + " (mode: " + mode + ")");
                 long count;
-                if (defaultValue != null && input.isEmpty()) {
-                    count = defaultValue; // Используем значение по умолчанию, если оно есть
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    count = defaultValue;
                 } else {
-                    count = Long.parseLong(input); // Парсим введённое значение
+                    count = Long.parseLong(input);
                 }
                 if (count <= 0) throw new IllegalArgumentException("Количество должно быть больше 0");
                 return count;
-
-            } catch (NumberFormatException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка! Введите корректное число");
-                } else {
-                    throw e;
-                }
             } catch (IllegalArgumentException e) {
                 if (mode == CommandMode.CLI_UserMode) {
                     System.out.println(e.getMessage());
@@ -123,17 +126,15 @@ public class InputReader {
                     System.out.print(prompt + " > ");
                 }
                 String input = scanner.nextLine().trim();
-                int count = (defaultValue != null && input.isEmpty())
-                        ? defaultValue
-                        : Integer.parseInt(input);
+                System.out.println("DEBUG: Read expelled students: " + input + " (mode: " + mode + ")");
+                int count;
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    count = defaultValue;
+                } else {
+                    count = Integer.parseInt(input);
+                }
                 if (count <= 0) throw new IllegalArgumentException("Количество должно быть больше 0");
                 return count;
-            } catch (NumberFormatException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка! Введите корректное число");
-                } else {
-                    throw e;
-                }
             } catch (IllegalArgumentException e) {
                 if (mode == CommandMode.CLI_UserMode) {
                     System.out.println(e.getMessage());
@@ -153,17 +154,15 @@ public class InputReader {
                     System.out.print(prompt + " > ");
                 }
                 String input = scanner.nextLine().trim();
-                int count = (defaultValue != null && input.isEmpty())
-                        ? defaultValue
-                        : Integer.parseInt(input);
+                System.out.println("DEBUG: Read transferred students: " + input + " (mode: " + mode + ")");
+                int count;
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    count = defaultValue;
+                } else {
+                    count = Integer.parseInt(input);
+                }
                 if (count <= 0) throw new IllegalArgumentException("Количество должно быть больше 0");
                 return count;
-            } catch (NumberFormatException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка! Введите корректное число");
-                } else {
-                    throw e;
-                }
             } catch (IllegalArgumentException e) {
                 if (mode == CommandMode.CLI_UserMode) {
                     System.out.println(e.getMessage());
@@ -173,7 +172,6 @@ public class InputReader {
             }
         }
     }
-
 
     public FormOfEducation readFormOfEducation(FormOfEducation defaultValue) {
         while (true) {
@@ -189,7 +187,8 @@ public class InputReader {
                     System.out.print("> ");
                 }
                 String input = scanner.nextLine().trim();
-                if (defaultValue != null && input.isEmpty()) {
+                System.out.println("DEBUG: Read form of education: " + input + " (mode: " + mode + ")");
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
                     return defaultValue;
                 }
                 try {
@@ -220,7 +219,8 @@ public class InputReader {
                 System.out.print(namePrompt + " > ");
             }
             String nameInput = scanner.nextLine().trim();
-            if (defaultValue != null && nameInput.equals("") && defaultValue.getName() != null) {
+            System.out.println("DEBUG: Read admin name: " + nameInput + " (mode: " + mode + ")");
+            if (mode != CommandMode.CLI_UserMode && nameInput.isEmpty() && defaultValue != null && defaultValue.getName() != null) {
                 admin.setName(defaultValue.getName());
             } else {
                 admin.setName(nameInput);
@@ -234,7 +234,8 @@ public class InputReader {
                 System.out.println(birthdayPrompt + " > ");
             }
             String birthdayStr = scanner.nextLine().trim();
-            if (defaultValue != null && birthdayStr.equals("") && defaultValue.getBirthday() != null) {
+            System.out.println("DEBUG: Read admin birthday: " + birthdayStr + " (mode: " + mode + ")");
+            if (mode != CommandMode.CLI_UserMode && birthdayStr.isEmpty() && defaultValue != null && defaultValue.getBirthday() != null) {
                 admin.setBirthday(defaultValue.getBirthday());
             } else if (!birthdayStr.isEmpty()) {
                 admin.setBirthday(LocalDate.parse(birthdayStr));
@@ -248,7 +249,8 @@ public class InputReader {
                 System.out.println(passportPrompt + " > ");
             }
             String passportID = scanner.nextLine().trim();
-            if (defaultValue != null && passportID.equals("") && defaultValue.getPassportID() != null) {
+            System.out.println("DEBUG: Read admin passport: " + passportID + " (mode: " + mode + ")");
+            if (mode != CommandMode.CLI_UserMode && passportID.isEmpty() && defaultValue != null && defaultValue.getPassportID() != null) {
                 admin.setPassportID(defaultValue.getPassportID());
             } else if (!passportID.isEmpty()) {
                 admin.setPassportID(passportID);
@@ -261,7 +263,7 @@ public class InputReader {
         } catch (IllegalArgumentException e) {
             if (mode == CommandMode.CLI_UserMode) {
                 System.out.println("Ошибка: " + e.getMessage());
-                return readGroupAdmin(defaultValue); // Рекурсивный вызов
+                return readGroupAdmin(defaultValue);
             } else {
                 throw e;
             }
@@ -282,7 +284,8 @@ public class InputReader {
                     System.out.print("> ");
                 }
                 String input = scanner.nextLine().trim();
-                if (defaultValue != null && input.equals("")) {
+                System.out.println("DEBUG: Read eye color: " + input + " (mode: " + mode + ")");
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
                     return defaultValue;
                 }
                 try {
@@ -313,7 +316,8 @@ public class InputReader {
                     System.out.print(xPrompt + " > ");
                 }
                 String xInput = scanner.nextLine().trim();
-                x = (defaultValue != null && xInput.isEmpty())
+                System.out.println("DEBUG: Read location X: " + xInput + " (mode: " + mode + ")");
+                x = (mode != CommandMode.CLI_UserMode && xInput.isEmpty() && defaultValue != null)
                         ? defaultValue.getX()
                         : Float.parseFloat(xInput);
 
@@ -323,7 +327,8 @@ public class InputReader {
                     System.out.print(yPrompt + " > ");
                 }
                 String yInput = scanner.nextLine().trim();
-                y = (defaultValue != null && yInput.equals(""))
+                System.out.println("DEBUG: Read location Y: " + yInput + " (mode: " + mode + ")");
+                y = (mode != CommandMode.CLI_UserMode && yInput.isEmpty() && defaultValue != null)
                         ? defaultValue.getY()
                         : Float.parseFloat(yInput);
 
@@ -333,7 +338,8 @@ public class InputReader {
                     System.out.print(zPrompt + " > ");
                 }
                 String zInput = scanner.nextLine().trim();
-                z = (defaultValue != null && zInput.equals(""))
+                System.out.println("DEBUG: Read location Z: " + zInput + " (mode: " + mode + ")");
+                z = (mode != CommandMode.CLI_UserMode && zInput.isEmpty() && defaultValue != null)
                         ? defaultValue.getZ()
                         : Float.parseFloat(zInput);
 

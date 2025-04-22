@@ -11,12 +11,10 @@ import java.time.LocalDate;
 
 public class UpdateId extends Command {
     private final CommandManager commandManager;
-    private final InputReader inputReader;
 
     public UpdateId(StudyGroupCollectionManager collectionManager, Scanner scanner, CommandManager commandManager) {
         super(true, collectionManager);
         this.commandManager = commandManager;
-        this.inputReader = new InputReader(scanner, commandManager.getCurrentMode());
     }
 
     @Override
@@ -51,20 +49,27 @@ public class UpdateId extends Command {
 
             StudyGroup newGroup = new StudyGroup();
             newGroup.setId(oldGroup.getId());
+            InputReader inputReader = new InputReader(commandManager.getScanner(), commandManager.getCurrentMode());
 
-            inputReader.SetFieldWithRetry(newGroup , () -> newGroup.setName(inputReader.readName(oldGroup.getName())), "название группы");
-
-            inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setCoordinates(inputReader.readCoordinates(oldGroup.getCoordinates())), "координаты");
-
-            inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setStudentsCount(inputReader.readStudentsCount(oldGroup.getStudentsCount())), "количество студентов");
-
-            inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setExpelledStudents(inputReader.readExpelledStudents(oldGroup.getExpelledStudents())), "отчисленные студенты");
-
-            inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setTransferredStudents(inputReader.readTransferredStudents(oldGroup.getTransferredStudents())), "переведенные студенты");
-
-            inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setFormOfEducation(inputReader.readFormOfEducation(oldGroup.getFormOfEducation())), "форма обучения");
-
-            inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setGroupAdmin(inputReader.readGroupAdmin(oldGroup.getGroupAdmin())), "администратор группы");
+            if (commandManager.getCurrentMode() == CommandMode.CLI_UserMode) {
+                // Интерактивный режим с повторными попытками
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setName(inputReader.readName(oldGroup.getName())), "название группы");
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setCoordinates(inputReader.readCoordinates(oldGroup.getCoordinates())), "координаты");
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setStudentsCount(inputReader.readStudentsCount(oldGroup.getStudentsCount())), "количество студентов");
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setExpelledStudents(inputReader.readExpelledStudents(oldGroup.getExpelledStudents())), "отчисленные студенты");
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setTransferredStudents(inputReader.readTransferredStudents(oldGroup.getTransferredStudents())), "переведенные студенты");
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setFormOfEducation(inputReader.readFormOfEducation(oldGroup.getFormOfEducation())), "форма обучения");
+                inputReader.SetFieldWithRetry(newGroup, () -> newGroup.setGroupAdmin(inputReader.readGroupAdmin(oldGroup.getGroupAdmin())), "администратор группы");
+            } else {
+                // Режим скрипта: читаем данные без повторных попыток
+                newGroup.setName(inputReader.readName(oldGroup.getName()));
+                newGroup.setCoordinates(inputReader.readCoordinates(oldGroup.getCoordinates()));
+                newGroup.setStudentsCount(inputReader.readStudentsCount(oldGroup.getStudentsCount()));
+                newGroup.setExpelledStudents(inputReader.readExpelledStudents(oldGroup.getExpelledStudents()));
+                newGroup.setTransferredStudents(inputReader.readTransferredStudents(oldGroup.getTransferredStudents()));
+                newGroup.setFormOfEducation(inputReader.readFormOfEducation(oldGroup.getFormOfEducation()));
+                newGroup.setGroupAdmin(inputReader.readGroupAdmin(oldGroup.getGroupAdmin()));
+            }
 
             collectionManager.updateById((int) id, newGroup);
             System.out.println("Элемент успешно обновлен");

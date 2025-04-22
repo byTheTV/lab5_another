@@ -60,9 +60,6 @@ public class Main {
             manager.initializeData(dataFile);
             boolean loadSuccess = manager.load();
             if (loadSuccess) {
-                System.out.println("""
-                        
-                        """);
                 System.out.println("\nКоллекция успешно загружена из файла: " + dataFile);
                 System.out.println("Информация о коллекции:");
                 System.out.println("Размер коллекции: " + manager.getSize());
