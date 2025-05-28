@@ -1,18 +1,22 @@
 package commandManagers.commands;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.util.Scanner;
 
 import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
+import commandManagers.CommandManager;
 
 /**
- * Команда execute_script считывает и исполняет скрипт из файла.
+ * Команда для выполнения скрипта из файла
  */
 public class ExecuteScript extends Command<FlatCollectionManager> {
-    public ExecuteScript(FlatCollectionManager collectionManager) {
+    private final CommandManager commandManager;
+
+    public ExecuteScript(FlatCollectionManager collectionManager, CommandManager commandManager) {
         super(collectionManager);
+        this.commandManager = commandManager;
     }
 
     @Override
@@ -22,30 +26,42 @@ public class ExecuteScript extends Command<FlatCollectionManager> {
 
     @Override
     public String getDescription() {
-        return "считать и исполнить скрипт из файла";
+        return "считать и исполнить скрипт из указанного файла";
     }
 
     @Override
     public boolean checkArgument(String[] args) {
-        if (args.length != 1) {
-            return false;
-        }
-        File file = new File(args[0]);
-        return file.exists() && file.isFile() && file.canRead();
+        return args.length == 1;
     }
 
     @Override
     public void execute(String[] args) {
         String filePath = args[0];
-        try (Scanner scriptScanner = new Scanner(new File(filePath))) {
+        File scriptFile = new File(filePath);
+
+        if (!scriptFile.exists()) {
+            System.err.println("Ошибка: Файл скрипта не найден: " + filePath);
+            return;
+        }
+
+        if (!scriptFile.canRead()) {
+            System.err.println("Ошибка: Нет прав на чтение файла: " + filePath);
+            return;
+        }
+
+        try (Scanner scriptScanner = new Scanner(new FileInputStream(scriptFile))) {
+            System.out.println("Выполняю скрипт из файла: " + filePath);
+            
             while (scriptScanner.hasNextLine()) {
                 String line = scriptScanner.nextLine().trim();
-                if (!line.isEmpty()) {
-                    collectionManager.executeScript(line);
+                if (!line.isEmpty() && !line.startsWith("#")) {
+                    commandManager.executeCommand(line);
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("Файл не найден: " + filePath);
+            
+            System.out.println("Скрипт успешно выполнен");
+        } catch (Exception e) {
+            System.err.println("Ошибка при выполнении скрипта: " + e.getMessage());
         }
     }
 } 

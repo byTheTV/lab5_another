@@ -58,7 +58,7 @@ public class CommandManager {
         commands.put("remove_by_id", new RemoveById(collectionManager));
         commands.put("clear", new Clear(collectionManager));
         commands.put("save", new Save(collectionManager));
-        commands.put("execute_script", new ExecuteScript(collectionManager));
+        commands.put("execute_script", new ExecuteScript(collectionManager, this));
         commands.put("exit", new Exit());
         commands.put("min_by_id", new MinById(collectionManager));
         commands.put("count_less_than_house", new CountLessThanHouse(collectionManager, scanner));
