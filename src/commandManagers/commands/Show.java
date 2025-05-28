@@ -1,34 +1,36 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
-import collectionManagers.StudyGroupCollectionManager;
 
-public class Show extends Command {
-    public Show(StudyGroupCollectionManager collectionManager) {
-        super(false, collectionManager);
+/**
+ * Команда show выводит все элементы коллекции.
+ */
+public class Show extends Command<FlatCollectionManager> {
+    private final FlatCollectionManager collectionManager;
+
+    public Show(FlatCollectionManager collectionManager) {
+        super(collectionManager);
+        this.collectionManager = collectionManager;
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "show";
     }
 
     @Override
-    public String getDescr() {
+    public String getDescription() {
         return "вывести все элементы коллекции";
     }
 
     @Override
-    public void execute() {
-        if (collectionManager.getCollection().isEmpty()) {
-            System.out.println("Коллекция пуста");
-            return;
-        }
-        collectionManager.getCollection().forEach(System.out::println);
+    public boolean checkArgument(String[] args) {
+        return args.length == 0;
     }
 
     @Override
-    public boolean checkArgument(Object argument) {
-        return true;
+    public void execute(String[] args) {
+        collectionManager.showCollection();
     }
 } 

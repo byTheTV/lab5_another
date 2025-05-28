@@ -1,11 +1,24 @@
 package commandManagers;
 
-import collectionManagers.StudyGroupCollectionManager;
-import commandManagers.commands.*;
-import exceptions.BuildObjectException;
-import exceptions.CommandInterruptedException;
-import exceptions.UnknownCommandException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+import collectionManagers.FlatCollectionManager;
+import commandManagers.commands.Add;
+import commandManagers.commands.AddIfMin;
+import commandManagers.commands.Clear;
+import commandManagers.commands.CountLessThanHouse;
+import commandManagers.commands.ExecuteScript;
+import commandManagers.commands.Exit;
+import commandManagers.commands.Help;
+import commandManagers.commands.Info;
+import commandManagers.commands.MinById;
+import commandManagers.commands.PrintUniqueHouse;
+import commandManagers.commands.RemoveById;
+import commandManagers.commands.Save;
+import commandManagers.commands.Show;
+import commandManagers.commands.Update;
 
 /**
  The CommandManager class is responsible for managing all available commands in the application.
@@ -18,48 +31,43 @@ public class CommandManager {
      A LinkedHashMap object that stores all available commands in the application. The key is the command name
      and the value is an instance of the corresponding Command subclass.
      */
-    private LinkedHashMap<String, Command> commandMap;
-    private Scanner scanner;
-    private final StudyGroupCollectionManager collectionManager;
+    private final Map<String, Command<FlatCollectionManager>> commands;
+    private final FlatCollectionManager collectionManager;
+    private final Scanner scanner;
     private CommandMode currentMode = CommandMode.CLI_UserMode;
 
     /**
-     * Новый конструктор, получающий заранее созданный экземпляр StudyGroupCollectionManager.
+     * Новый конструктор, получающий заранее созданный экземпляр FlatCollectionManager.
      *
      * @param scanner сканер для чтения ввода
      * @param collectionManager корректно инициализированный менеджер коллекции
      */
-    public CommandManager(Scanner scanner, StudyGroupCollectionManager collectionManager) {
-        this.scanner = scanner;
-        if (collectionManager == null) {
-            throw new IllegalArgumentException("CollectionManager не должен быть null!");
-        }
+    public CommandManager(FlatCollectionManager collectionManager, Scanner scanner) {
         this.collectionManager = collectionManager;
+        this.scanner = scanner;
+        this.commands = new HashMap<>();
         initializeCommands();
     }
 
     private void initializeCommands() {
-        commandMap = new LinkedHashMap<>();
-        commandMap.put("help", new Help());
-        commandMap.put("info", new Info(collectionManager));
-        commandMap.put("show", new Show(collectionManager));
-        commandMap.put("add", new Add(collectionManager, scanner, this));
-        commandMap.put("update_id", new UpdateId(collectionManager, scanner, this));
-        commandMap.put("remove_by_id", new RemoveById(collectionManager));
-        commandMap.put("clear", new Clear(collectionManager));
-        commandMap.put("save", new SaveCollection(collectionManager));
-        commandMap.put("execute_script", new ExecuteScript(this));
-        commandMap.put("exit", new Exit(collectionManager));
-        commandMap.put("head", new Head(collectionManager));
-        commandMap.put("remove_head", new RemoveHead(collectionManager));
-        commandMap.put("remove_lower", new RemoveLower(collectionManager));
-        commandMap.put("average_of_transferred_students", new AverageOfTransferredStudents(collectionManager));
-        commandMap.put("group_counting_by_form_of_education", new GroupCountingByFormOfEducation(collectionManager));
-        commandMap.put("print_field_ascending_group_admin", new PrintFieldAscendingGroupAdmin(collectionManager));
+        commands.put("help", new Help(collectionManager));
+        commands.put("info", new Info(collectionManager));
+        commands.put("show", new Show(collectionManager));
+        commands.put("add", new Add(collectionManager, scanner));
+        commands.put("update", new Update(collectionManager, scanner));
+        commands.put("remove_by_id", new RemoveById(collectionManager));
+        commands.put("clear", new Clear(collectionManager));
+        commands.put("save", new Save(collectionManager));
+        commands.put("execute_script", new ExecuteScript(collectionManager));
+        commands.put("exit", new Exit());
+        commands.put("min_by_id", new MinById(collectionManager));
+        commands.put("count_less_than_house", new CountLessThanHouse(collectionManager, scanner));
+        commands.put("print_unique_house", new PrintUniqueHouse(collectionManager));
+        commands.put("add_if_min", new AddIfMin(collectionManager, scanner));
     }
 
     public void initializeData(String dataFile) {
-        collectionManager.initializeData(dataFile);
+        System.out.println("Data initialization logic needs to be updated for Flats.");
     }
 
     /**
@@ -67,8 +75,8 @@ public class CommandManager {
      @return the HashMap of all commands where the key is the command name and the value is an instance
      of the corresponding Command subclass.
      */
-    public HashMap<String, Command> getCommandMap() {
-        return commandMap;
+    public HashMap<String, Command<FlatCollectionManager>> getCommandMap() {
+        return new HashMap<>(commands);
     }
 
     public void setCurrentMode(CommandMode mode) {
@@ -83,48 +91,25 @@ public class CommandManager {
         return scanner;
     }
 
-    public void setScanner(Scanner scanner) {
-        this.scanner = scanner;
-    }
-
     /**
      * Universe method for command executing.
      */
-    public void executeCommand(String[] args) {
-        try {
-            if (args.length == 0) {
-                throw new IllegalArgumentException("Команда не указана.");
-            }
+    public void executeCommand(String input) {
+        String[] parts = input.trim().split("\\s+", 2);
+        String commandName = parts[0].toLowerCase();
+        String[] args = parts.length > 1 ? parts[1].split("\\s+") : new String[0];
 
-            Command command = commandMap.get(args[0]);
-            if (command == null) {
-                throw new UnknownCommandException("\nКоманда " + args[0] + " не обнаружена :( ");
-            }
-
-            if (args.length > 1) {
-                command.setArgument(args[1]);
-            }
-
-            command.execute();
-        } catch (IllegalArgumentException | NullPointerException | NoSuchElementException e) {
-            // Обработка ошибок, связанных с аргументами
-            System.err.println("Выполнение команды пропущено из-за неправильных предоставленных аргументов! (" + e.getMessage() + ")");
-            if (currentMode == CommandMode.CLI_UserMode) {
-                throw new CommandInterruptedException(e);
-            }
-        } catch (BuildObjectException | UnknownCommandException e) {
-            // Обработка специфических исключений
-            System.err.println(e.getMessage()); // Выводим сообщение об ошибке
-            if (currentMode == CommandMode.CLI_UserMode) {
-                // Не пробрасываем исключение повторно, чтобы избежать дублирования сообщений
-                return; // Завершаем выполнение
-            }
-        } catch (Exception e) {
-            // Обработка всех остальных исключений
-            System.err.println("В командном менеджере произошла непредвиденная ошибка! ");
-            if (currentMode == CommandMode.CLI_UserMode) {
-                throw new CommandInterruptedException(e);
-            }
+        Command<FlatCollectionManager> command = commands.get(commandName);
+        if (command == null) {
+            System.out.println("Unknown command: " + commandName);
+            return;
         }
+
+        if (!command.checkArgument(args)) {
+            System.out.println("Invalid arguments for command: " + commandName);
+            return;
+        }
+
+        command.execute(args);
     }
 }

@@ -1,27 +1,33 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
 
 /**
  * Команда help выводит справку по доступным командам.
  */
-public class Help extends Command {
-    public Help() {
-        super(false, null);
+public class Help extends Command<FlatCollectionManager> {
+    public Help(FlatCollectionManager collectionManager) {
+        super(collectionManager);
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "help";
     }
 
     @Override
-    public String getDescr() {
+    public String getDescription() {
         return "вывести справку по доступным командам";
     }
 
     @Override
-    public void execute() {
+    public boolean checkArgument(String[] args) {
+        return args.length == 0;
+    }
+
+    @Override
+    public void execute(String[] args) {
         // ANSI escape-последовательности для цвета
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_GREEN = "\u001B[32m";
@@ -38,17 +44,11 @@ public class Help extends Command {
         System.out.println("save : сохранить коллекцию в файл");
         System.out.println("execute_script {file_name} : считать и исполнить скрипт из файла");
         System.out.println("exit : завершить программу (без сохранения)");
-        System.out.println("head : вывести первый элемент коллекции");
-        System.out.println("remove_head : вывести первый элемент коллекции и удалить его");
-        System.out.println("remove_lower {element} : удалить из коллекции все элементы, меньшие чем заданный");
-        System.out.println("average_of_transferred_students : вывести среднее значение transferredStudents для всех элементов коллекции");
-        System.out.println("group_counting_by_form_of_education : сгруппировать элементы коллекции по formOfEducation и вывести количество элементов в каждой группе");
-        System.out.println("print_field_ascending_group_admin : вывести значения поля groupAdmin всех элементов в порядке возрастания");
+        System.out.println("remove_at {index} : удалить элемент, находящийся в заданной позиции коллекции");
+        System.out.println("min_by_id : вывести любой объект из коллекции, значение поля id которого является минимальным");
+        System.out.println("count_less_than_house {house} : вывести количество элементов, значение поля house которых меньше заданного");
+        System.out.println("print_unique_house : вывести уникальные значения поля house всех элементов в коллекции");
+        System.out.println("add_if_min {element} : добавить новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции");
         System.out.println("================================================");
-    }
-
-    @Override
-    public boolean checkArgument(Object argument) {
-        return true;
     }
 } 

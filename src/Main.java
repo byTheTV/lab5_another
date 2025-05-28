@@ -1,9 +1,7 @@
-import collectionManagers.StudyGroupCollectionManager;
-import commandManagers.CommandExecutor;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 
+import collectionManagers.FlatCollectionManager;
+import commandManagers.CommandManager;
 
 /**
  * Точка входа в приложение.
@@ -35,47 +33,34 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            System.setOut(new PrintStream(System.out, true, "UTF-8"));
-            // Проверка аргументов командной строки.
-            // Если имя файла не передано или передан пустой буфер, используем файл по умолчанию.
-            String dataFile = "src/resourses/study_groups.xml";
-            if (args.length < 1 || args[0].trim().isEmpty()) {
-                System.out.println("Имя файла не указано или передан пустой буфер. Используем файл по умолчанию: " + dataFile);
-            } else {
-                dataFile = args[0];
+            // Initialize collection manager
+            FlatCollectionManager collectionManager = new FlatCollectionManager();
+            
+            // Initialize scanner for user input
+            Scanner scanner = new Scanner(System.in);
+            
+            // Initialize command manager
+            CommandManager commandManager = new CommandManager(collectionManager, scanner);
+            
+            // Main program loop
+            while (true) {
+                try {
+                    System.out.print("> ");
+                    String input = scanner.nextLine().trim();
+                    
+                    if (input.isEmpty()) {
+                        continue;
+                    }
+                    
+                    commandManager.executeCommand(input);
+                } catch (Exception e) {
+                    System.err.println("Error: " + e.getMessage());
+                }
             }
-            
-            // Добавляем вывод текущей директории для отладки
-            System.out.println("Текущая рабочая директория: " + System.getProperty("user.dir"));
-            
-            // Добавляем проверку существования файла
-            java.io.File file = new java.io.File(dataFile);
-            if (!file.exists()) {
-                System.err.println("Предупреждение: Файл не найден по пути: " + file.getAbsolutePath());
-            }
-            
-            // Создание менеджера коллекции и загрузка данных из файла
-            StudyGroupCollectionManager manager = new StudyGroupCollectionManager();
-            System.out.println("Попытка инициализации данных из файла: " + dataFile);
-            manager.initializeData(dataFile);
-            boolean loadSuccess = manager.load();
-            if (loadSuccess) {
-                System.out.println("\nКоллекция успешно загружена из файла: " + dataFile);
-                System.out.println("Информация о коллекции:");
-                System.out.println("Размер коллекции: " + manager.getSize());
-                System.out.println("Тип коллекции: " + manager.getCollectionType());
-                System.out.println("Дата создания: " + manager.getCreationDate());
-                System.out.println("Среднее число переведенных студентов: " + manager.getAverageOfTransferredStudents());
-            } else {
-                System.err.println("Ошибка: Не удалось загрузить коллекцию из файла: " + dataFile);
-            }
-
-            // Передаём менеджер коллекции в CommandExecutor и запускаем выполнение команд в CLI режиме
-            CommandExecutor executor = new CommandExecutor(manager);
-            executor.startExecuting(System.in);
-            
         } catch (Exception e) {
-            System.err.println("Произошла непредвиденная ошибка: " + e.getMessage());
+            System.err.println("Fatal error: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 } 

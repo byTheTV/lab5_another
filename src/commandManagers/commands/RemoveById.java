@@ -1,44 +1,46 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
-import collectionManagers.StudyGroupCollectionManager;
 
-public class RemoveById extends Command {
-    public RemoveById(StudyGroupCollectionManager collectionManager) {
-        super(true, collectionManager);
+/**
+ * Команда remove_by_id удаляет элемент из коллекции по его id.
+ */
+public class RemoveById extends Command<FlatCollectionManager> {
+    public RemoveById(FlatCollectionManager collectionManager) {
+        super(collectionManager);
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "remove_by_id";
     }
 
     @Override
-    public String getDescr() {
+    public String getDescription() {
         return "удалить элемент из коллекции по его id";
     }
 
     @Override
-    public void execute() {
+    public boolean checkArgument(String[] args) {
+        if (args.length != 1) {
+            return false;
+        }
         try {
-            int id = Integer.parseInt(argument);
-            if (collectionManager.removeById(id)) {
-                System.out.println("Элемент успешно удален");
-            } else {
-                System.out.println("Элемент с указанным id не найден");
-            }
+            Long.parseLong(args[0]);
+            return true;
         } catch (NumberFormatException e) {
-            System.out.println("Ошибка: id должен быть числом");
+            return false;
         }
     }
 
     @Override
-    public boolean checkArgument(Object argument) {
-        try {
-            Integer.parseInt((String) argument);
-            return true;
-        } catch (NumberFormatException | ClassCastException e) {
-            return false;
+    public void execute(String[] args) {
+        Long id = Long.parseLong(args[0]);
+        if (collectionManager.removeFlatById(id)) {
+            System.out.println("Элемент с id " + id + " успешно удален");
+        } else {
+            System.out.println("Элемент с id " + id + " не найден");
         }
     }
-} 
+}

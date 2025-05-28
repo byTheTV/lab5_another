@@ -7,9 +7,9 @@ public enum CommandMode {
     /**
      * Режим командной строки (CLI) для обычного пользователя.
      */
-    CLI_UserMode,    // Интерактивный режим через консоль
+    CLI_UserMode,    // Interactive command-line mode
     /**
      * Режим выполнения скриптов.
      */
-    NonUserMode      // Неинтерактивный режим (для скриптов)
+    NonUserMode      // Non-interactive mode (e.g., script execution)
 } 

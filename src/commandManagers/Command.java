@@ -1,105 +1,66 @@
 package commandManagers;
 
-import collectionManagers.StudyGroupCollectionManager;
-import exceptions.BuildObjectException;
-import models.*;
-
-import java.time.LocalDate;
-import java.util.Scanner;
-
 /**
- Abstract class representing a command that can be executed in the program.
+ * Abstract class representing a command that can be executed in the program.
+ * @param <T> The type of collection manager this command works with
  */
-public abstract class Command implements CommandInterface {
-
+public abstract class Command<T> {
     /**
-     Boolean indicating whether this command requires an argument or not.
+     * The collection manager for this command.
      */
-    private final boolean hasArgument;
+    protected T collectionManager;
 
     /**
-     The argument for this command.
+     * The argument for this command.
      */
     protected String argument;
 
     /**
-     The collection manager for this command.
+     * Constructs a new command with the specified collection manager.
+     * @param collectionManager the collection manager for this command
      */
-    protected StudyGroupCollectionManager collectionManager;
-
-    /**
-     * Base method for show command name
-     *
-     * @return command name
-     */
-    @Override
-    public abstract String getName();
-
-    /**
-     * Base method for show command description.
-     *
-     * @return command description
-     */
-    @Override
-    public abstract String getDescr();
-
-    /**
-     Constructs a new command with the specified argument requirement and collection manager.
-     @param hasArgument a boolean indicating whether this command requires an argument or not.
-     @param collectionManager the collection manager for this command.
-     */
-    public Command(boolean hasArgument, StudyGroupCollectionManager collectionManager) {
-        this.hasArgument = hasArgument;
+    public Command(T collectionManager) {
         this.collectionManager = collectionManager;
     }
 
-
-
     /**
-     Constructs a new command with the specified argument requirement.
-     @param hasArgument a boolean indicating whether this command requires an argument or not.
+     * Gets the name of this command.
+     * @return the command name
      */
-    public Command(boolean hasArgument) {
-        this.hasArgument = hasArgument;
-        this.collectionManager = null;
-    }
+    public abstract String getCommandName();
 
     /**
-     Executes command.
+     * Gets the description of this command.
+     * @return the command description
      */
-    @Override
-    public abstract void execute() throws BuildObjectException;
+    public abstract String getDescription();
 
     /**
-     Checks if the given inputArgument is valid for this command.
-     @param inputArgument the argument to check.
-     @return true if the argument is valid, false otherwise.
+     * Checks if the given arguments are valid for this command.
+     * @param args the arguments to check
+     * @return true if the arguments are valid, false otherwise
      */
-    @Override
-    public abstract boolean checkArgument(Object inputArgument);
+    public abstract boolean checkArgument(String[] args);
 
     /**
-     Returns whether this command requires an argument.
-     @return true if this command requires an argument, false otherwise.
+     * Executes this command with the given arguments.
+     * @param args the arguments for this command
      */
-    public boolean isHasArgument() {
-        return hasArgument;
-    }
+    public abstract void execute(String[] args);
 
     /**
-     Returns the argument for this command.
-     @return the argument for this command.
-     */
-    public String getArgument() {
-        return argument;
-    }
-
-    /**
-     Sets the argument for this command.
-     @param argument the argument to set.
+     * Sets the argument for this command.
+     * @param argument the argument to set
      */
     public void setArgument(String argument) {
         this.argument = argument;
     }
 
+    /**
+     * Gets the argument for this command.
+     * @return the argument
+     */
+    public String getArgument() {
+        return argument;
+    }
 }

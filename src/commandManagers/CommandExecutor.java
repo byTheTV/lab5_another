@@ -1,67 +1,65 @@
 package commandManagers;
 
-import collectionManagers.StudyGroupCollectionManager;
-import exceptions.BuildObjectException;
-import java.io.InputStream;
 import java.util.Scanner;
 
+import collectionManagers.FlatCollectionManager;
+import exceptions.CommandInterruptedException;
+
 /**
- * Класс {@code CommandExecutor} обрабатывает ввод и выполнение команд,
- * направленных на управление коллекцией {@code StudyGroup}.
+ * Класс CommandExecutor отвечает за выполнение команд.
  */
 public class CommandExecutor {
-
-    private final StudyGroupCollectionManager collectionManager;
+    private final CommandManager commandManager;
+    private final FlatCollectionManager collectionManager;
+    private Scanner scanner;
 
     /**
-     * Конструктор для создания исполнитель команд.
-     *
-     * @param collectionManager менеджер коллекции, с которым работают команды.
+     * Constructs a new CommandExecutor with the specified collection manager and scanner.
+     * @param collectionManager the collection manager to use
+     * @param scanner the scanner to use
      */
-    public CommandExecutor(StudyGroupCollectionManager collectionManager) {
-        if (collectionManager == null) {
-            throw new IllegalArgumentException("StudyGroupCollectionManager не должен быть null");
-        }
+    public CommandExecutor(FlatCollectionManager collectionManager, Scanner scanner) {
         this.collectionManager = collectionManager;
+        this.scanner = scanner;
+        this.commandManager = new CommandManager(collectionManager, scanner);
     }
 
     /**
-     * Запускает выполнение команд, считывая их из заданного входного потока.
-     * Перед началом работы сразу вызывается команда help для вывода справки по доступным командам.
-     *
-     * @param in поток ввода для считывания команд.
+     * Starts executing commands from the specified input stream.
+     * @param inputStream the input stream to read commands from
      */
-    public void startExecuting(InputStream in) {
-        // Передаём уже существующий collectionManager в CommandManager
-        try (Scanner scanner = new Scanner(in)) {
-            // Передаём уже существующий collectionManager в CommandManager
-            CommandManager commandManager = new CommandManager(scanner, collectionManager);
-            
-            // Вызываем команду help сразу при запуске, чтобы вывести список всех доступных команд
-            if (commandManager.getCommandMap().containsKey("help")) {
-                try {
-                    commandManager.getCommandMap().get("help").execute();
-                } catch (BuildObjectException e) {
-                    System.err.println("Ошибка выполнения команды help: " + e.getMessage());
-                }
-            }
-            
-            System.out.println("Командный режим запущен. Введите команды (для выхода введите 'exit'):");
-            while (scanner.hasNextLine()) {
+    public void startExecuting(java.io.InputStream inputStream) {
+        scanner = new Scanner(inputStream);
+        commandManager.setCurrentMode(CommandMode.CLI_UserMode);
+
+        while (true) {
+            try {
                 System.out.print("> ");
-                String inputLine = scanner.nextLine().trim();
-                if (inputLine.isEmpty()) continue;
-                String[] args = inputLine.split("\\s+");
-                if ("exit".equalsIgnoreCase(args[0])) {
-                    System.out.println("Выход из командного режима.");
-                    break;
+                String input = scanner.nextLine().trim();
+                
+                if (input.isEmpty()) {
+                    continue;
                 }
-                try {
-                    commandManager.executeCommand(args);
-                } catch (Exception e) {
-                    System.err.println("Ошибка выполнения команды: " + e.getMessage());
-                }
+                
+                commandManager.executeCommand(input);
+            } catch (CommandInterruptedException e) {
+                System.err.println("Command execution interrupted: " + e.getMessage());
+            } catch (Exception e) {
+                System.err.println("Error executing command: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * Stops executing commands and closes the scanner.
+     */
+    public void stopExecuting() {
+        if (scanner != null) {
+            scanner.close();
+        }
+    }
+
+    public void executeCommand(String input) {
+        commandManager.executeCommand(input);
     }
 }

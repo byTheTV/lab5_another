@@ -1,70 +1,51 @@
 package commandManagers.commands;
 
-import commandManagers.Command;
-import commandManagers.CommandManager;
-import commandManagers.CommandMode;
-import exceptions.RecursiveScriptException;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
 import java.util.Scanner;
-import java.util.Set;
 
-public class ExecuteScript extends Command {
-    private static final Set<String> executedScripts = new HashSet<>();
-    private final CommandManager commandManager;
+import collectionManagers.FlatCollectionManager;
+import commandManagers.Command;
 
-    public ExecuteScript(CommandManager commandManager) {
-        super(true, null);
-        this.commandManager = commandManager;
+/**
+ * Команда execute_script считывает и исполняет скрипт из файла.
+ */
+public class ExecuteScript extends Command<FlatCollectionManager> {
+    public ExecuteScript(FlatCollectionManager collectionManager) {
+        super(collectionManager);
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "execute_script";
     }
 
     @Override
-    public String getDescr() {
-        return "считать и исполнить скрипт из указанного файла";
+    public String getDescription() {
+        return "считать и исполнить скрипт из файла";
     }
 
     @Override
-    public void execute() {
-        String fileName = (String) this.argument;
-        
-        if (!executedScripts.add(fileName)) {
-            throw new RecursiveScriptException("Обнаружен рекурсивный вызов скрипта: " + fileName);
+    public boolean checkArgument(String[] args) {
+        if (args.length != 1) {
+            return false;
         }
+        File file = new File(args[0]);
+        return file.exists() && file.isFile() && file.canRead();
+    }
 
-        try (Scanner fileScanner = new Scanner(new File(fileName))) {
-            CommandMode previousMode = commandManager.getCurrentMode();
-            Scanner previousScanner = commandManager.getScanner();
-            
-            commandManager.setCurrentMode(CommandMode.NonUserMode);
-            commandManager.setScanner(fileScanner);
-            
-            try {
-                while (fileScanner.hasNextLine()) {
-                    String line = fileScanner.nextLine().trim();
-                    if (!line.isEmpty()) {
-                        String[] args = line.split("\\s+", 2);
-                        commandManager.executeCommand(args);
-                    }
+    @Override
+    public void execute(String[] args) {
+        String filePath = args[0];
+        try (Scanner scriptScanner = new Scanner(new File(filePath))) {
+            while (scriptScanner.hasNextLine()) {
+                String line = scriptScanner.nextLine().trim();
+                if (!line.isEmpty()) {
+                    collectionManager.executeScript(line);
                 }
-            } finally {
-                commandManager.setCurrentMode(previousMode);
-                commandManager.setScanner(previousScanner);
-                executedScripts.remove(fileName);
             }
         } catch (FileNotFoundException e) {
-            System.out.println("Файл не найден: " + fileName);
+            System.out.println("Файл не найден: " + filePath);
         }
-    }
-
-    @Override
-    public boolean checkArgument(Object argument) {
-        return argument instanceof String && !((String) argument).isEmpty();
     }
 } 

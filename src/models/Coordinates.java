@@ -1,21 +1,15 @@
 package models;
 
 public class Coordinates {
-    private Long x; // Максимальное значение поля: 648, Поле не может быть null
-    private Long y; // Поле не может быть null
+    private long x;
+    private Long y; // Значение поля должно быть больше -891, Поле не может быть null
 
-    public Coordinates(Long x, Long y) {
+    public Coordinates(long x, Long y) {
         setX(x);
         setY(y);
     }
 
-    public void setX(Long x) {
-        if (x == null) {
-            throw new IllegalArgumentException("X coordinate cannot be null");
-        }
-        if (x > 648) {
-            throw new IllegalArgumentException("X coordinate cannot be greater than 648");
-        }
+    public void setX(long x) {
         this.x = x;
     }
 
@@ -23,10 +17,13 @@ public class Coordinates {
         if (y == null) {
             throw new IllegalArgumentException("Y coordinate cannot be null");
         }
+        if (y <= -891) {
+            throw new IllegalArgumentException("Y coordinate must be greater than -891");
+        }
         this.y = y;
     }
 
-    public Long getX() { return x; }
+    public long getX() { return x; }
     public Long getY() { return y; }
     
     @Override

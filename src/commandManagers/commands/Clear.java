@@ -1,31 +1,33 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
-import collectionManagers.StudyGroupCollectionManager;
 
-public class Clear extends Command {
-    public Clear(StudyGroupCollectionManager collectionManager) {
-        super(false, collectionManager);
+/**
+ * Команда clear очищает коллекцию.
+ */
+public class Clear extends Command<FlatCollectionManager> {
+    public Clear(FlatCollectionManager collectionManager) {
+        super(collectionManager);
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "clear";
     }
 
     @Override
-    public String getDescr() {
+    public String getDescription() {
         return "очистить коллекцию";
     }
 
     @Override
-    public void execute() {
-        collectionManager.clear();
-        System.out.println("Коллекция очищена");
+    public boolean checkArgument(String[] args) {
+        return args.length == 0;
     }
 
     @Override
-    public boolean checkArgument(Object argument) {
-        return true;
+    public void execute(String[] args) {
+        collectionManager.clearCollection();
     }
 } 

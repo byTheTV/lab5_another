@@ -1,14 +1,14 @@
 package commandManagers;
 
-import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Scanner;
 
-import models.Color;
 import models.Coordinates;
-import models.FormOfEducation;
-import models.Location;
-import models.Person;
-import models.StudyGroup;
+import models.Flat;
+import models.Furnish;
+import models.House;
+import models.Transport;
+import models.View;
 
 public class InputReader {
     private final Scanner scanner;
@@ -19,14 +19,14 @@ public class InputReader {
         this.mode = mode;
     }
 
-    public void SetFieldWithRetry(StudyGroup studyGroup, Runnable setter, String fieldName) {
+    public void setFieldWithRetry(Flat flat, Runnable setter, String fieldName) {
         while (true) {
             try {
                 setter.run();
                 break;
             } catch (Exception e) {
                 if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка в поле '" + fieldName + "': " + e.getMessage() + ". Попробуйте снова.");
+                    System.out.println("Error in field '" + fieldName + "': " + e.getMessage() + ". Try again.");
                 } else {
                     throw e;
                 }
@@ -36,12 +36,11 @@ public class InputReader {
 
     public String readName(String defaultValue) {
         if (mode == CommandMode.CLI_UserMode) {
-            String prompt = "Введите название группы";
-            if (defaultValue != null) prompt += " (пробел для '" + defaultValue + "')";
+            String prompt = "Enter flat name";
+            if (defaultValue != null) prompt += " (space for '" + defaultValue + "')";
             System.out.print(prompt + " > ");
         }
         String input = scanner.nextLine().trim();
-        System.out.println("DEBUG: Read name: " + input + " (mode: " + mode + ")");
         if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
             return defaultValue;
         }
@@ -53,27 +52,25 @@ public class InputReader {
             try {
                 Long x, y;
 
-                // Обработка X
+                // Handle X
                 if (mode == CommandMode.CLI_UserMode) {
-                    String xPrompt = "Введите координату X (максимальное значение 648)";
-                    if (defaultValue != null) xPrompt += " (пробел для " + defaultValue.getX() + ")";
+                    String xPrompt = "Enter X coordinate (max value 648)";
+                    if (defaultValue != null) xPrompt += " (space for " + defaultValue.getX() + ")";
                     System.out.print(xPrompt + " > ");
                 }
                 String xInput = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read X: " + xInput + " (mode: " + mode + ")");
                 x = (defaultValue != null && xInput.isEmpty())
                         ? defaultValue.getX()
                         : Long.parseLong(xInput);
-                if (x > 648) throw new IllegalArgumentException("X не может быть больше 648");
+                if (x > 648) throw new IllegalArgumentException("X cannot be greater than 648");
 
-                // Обработка Y
+                // Handle Y
                 if (mode == CommandMode.CLI_UserMode) {
-                    String yPrompt = "Введите координату Y";
-                    if (defaultValue != null) yPrompt += " (пробел для " + defaultValue.getY() + ")";
+                    String yPrompt = "Enter Y coordinate";
+                    if (defaultValue != null) yPrompt += " (space for " + defaultValue.getY() + ")";
                     System.out.print(yPrompt + " > ");
                 }
                 String yInput = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read Y: " + yInput + " (mode: " + mode + ")");
                 y = (defaultValue != null && yInput.isEmpty())
                         ? defaultValue.getY()
                         : Long.parseLong(yInput);
@@ -89,23 +86,49 @@ public class InputReader {
         }
     }
 
-    public Long readStudentsCount(Long defaultValue) {
+    public Float readArea(Float defaultValue) {
         while (true) {
             try {
                 if (mode == CommandMode.CLI_UserMode) {
-                    String prompt = "Введите количество студентов";
-                    if (defaultValue != null) prompt += " (пробел для " + defaultValue + ")";
+                    String prompt = "Enter area";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + ")";
                     System.out.print(prompt + " > ");
                 }
                 String input = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read students count: " + input + " (mode: " + mode + ")");
+                float area;
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    area = defaultValue;
+                } else {
+                    area = Float.parseFloat(input);
+                }
+                if (area <= 0) throw new IllegalArgumentException("Area must be greater than 0");
+                return area;
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    public Long readNumberOfRooms(Long defaultValue) {
+        while (true) {
+            try {
+                if (mode == CommandMode.CLI_UserMode) {
+                    String prompt = "Enter number of rooms";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + ")";
+                    System.out.print(prompt + " > ");
+                }
+                String input = scanner.nextLine().trim();
                 long count;
                 if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
                     count = defaultValue;
                 } else {
                     count = Long.parseLong(input);
                 }
-                if (count <= 0) throw new IllegalArgumentException("Количество должно быть больше 0");
+                if (count <= 0) throw new IllegalArgumentException("Number of rooms must be greater than 0");
                 return count;
             } catch (IllegalArgumentException e) {
                 if (mode == CommandMode.CLI_UserMode) {
@@ -117,236 +140,200 @@ public class InputReader {
         }
     }
 
-    public Integer readExpelledStudents(Integer defaultValue) {
+    public Furnish readFurnish(Furnish defaultValue) {
         while (true) {
             try {
                 if (mode == CommandMode.CLI_UserMode) {
-                    String prompt = "Введите количество отчисленных студентов";
-                    if (defaultValue != null) prompt += " (пробел для " + defaultValue + ")";
+                    String prompt = "Choose furnish type";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + "):";
+                    else prompt += ":";
+                    System.out.println(prompt);
+                    for (Furnish furnish : Furnish.values()) {
+                        System.out.println(furnish.ordinal() + 1 + " — " + furnish);
+                    }
+                    System.out.print("> ");
+                }
+                String input = scanner.nextLine().trim();
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    return defaultValue;
+                }
+                try {
+                    int choice = Integer.parseInt(input);
+                    if (choice > 0 && choice <= Furnish.values().length) {
+                        return Furnish.values()[choice - 1];
+                    }
+                } catch (NumberFormatException ignored) {}
+                return Furnish.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println("Invalid furnish type. Available types: " + Arrays.toString(Furnish.values()));
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    public View readView(View defaultValue) {
+        while (true) {
+            try {
+                if (mode == CommandMode.CLI_UserMode) {
+                    String prompt = "Choose view type";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + "):";
+                    else prompt += ":";
+                    System.out.println(prompt);
+                    for (View view : View.values()) {
+                        System.out.println(view.ordinal() + 1 + " — " + view);
+                    }
+                    System.out.print("> ");
+                }
+                String input = scanner.nextLine().trim();
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    return defaultValue;
+                }
+                try {
+                    int choice = Integer.parseInt(input);
+                    if (choice > 0 && choice <= View.values().length) {
+                        return View.values()[choice - 1];
+                    }
+                } catch (NumberFormatException ignored) {}
+                return View.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println("Invalid view type. Available types: " + Arrays.toString(View.values()));
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    public Transport readTransport(Transport defaultValue) {
+        while (true) {
+            try {
+                if (mode == CommandMode.CLI_UserMode) {
+                    String prompt = "Choose transport type";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + "):";
+                    else prompt += ":";
+                    System.out.println(prompt);
+                    for (Transport transport : Transport.values()) {
+                        System.out.println(transport.ordinal() + 1 + " — " + transport);
+                    }
+                    System.out.print("> ");
+                }
+                String input = scanner.nextLine().trim();
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    return defaultValue;
+                }
+                try {
+                    int choice = Integer.parseInt(input);
+                    if (choice > 0 && choice <= Transport.values().length) {
+                        return Transport.values()[choice - 1];
+                    }
+                } catch (NumberFormatException ignored) {}
+                return Transport.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println("Invalid transport type. Available types: " + Arrays.toString(Transport.values()));
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    public House readHouse(House defaultValue) {
+        while (true) {
+            try {
+                String name = readName(defaultValue != null ? defaultValue.getName() : null);
+                Integer year = readYear(defaultValue != null ? defaultValue.getYear() : null);
+                long numberOfFlatsOnFloor = readNumberOfFlatsOnFloor(defaultValue != null ? defaultValue.getNumberOfFlatsOnFloor() : null);
+                Integer numberOfLifts = readNumberOfLifts(defaultValue != null ? defaultValue.getNumberOfLifts() : null);
+                return new House(name, year, numberOfFlatsOnFloor, numberOfLifts);
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private Integer readYear(Integer defaultValue) {
+        while (true) {
+            try {
+                if (mode == CommandMode.CLI_UserMode) {
+                    String prompt = "Enter year";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + ")";
                     System.out.print(prompt + " > ");
                 }
                 String input = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read expelled students: " + input + " (mode: " + mode + ")");
+                int year;
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    year = defaultValue;
+                } else {
+                    year = Integer.parseInt(input);
+                }
+                if (year <= 0 || year > 975) throw new IllegalArgumentException("Year must be greater than 0 and less than or equal to 975");
+                return year;
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private long readNumberOfFlatsOnFloor(Long defaultValue) {
+        while (true) {
+            try {
+                if (mode == CommandMode.CLI_UserMode) {
+                    String prompt = "Enter number of flats on floor";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + ")";
+                    System.out.print(prompt + " > ");
+                }
+                String input = scanner.nextLine().trim();
+                long count;
+                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
+                    count = defaultValue;
+                } else {
+                    count = Long.parseLong(input);
+                }
+                if (count <= 0) throw new IllegalArgumentException("Number of flats on floor must be greater than 0");
+                return count;
+            } catch (IllegalArgumentException e) {
+                if (mode == CommandMode.CLI_UserMode) {
+                    System.out.println(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private Integer readNumberOfLifts(Integer defaultValue) {
+        while (true) {
+            try {
+                if (mode == CommandMode.CLI_UserMode) {
+                    String prompt = "Enter number of lifts";
+                    if (defaultValue != null) prompt += " (space for " + defaultValue + ")";
+                    System.out.print(prompt + " > ");
+                }
+                String input = scanner.nextLine().trim();
                 int count;
                 if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
                     count = defaultValue;
                 } else {
                     count = Integer.parseInt(input);
                 }
-                if (count <= 0) throw new IllegalArgumentException("Количество должно быть больше 0");
+                if (count <= 0) throw new IllegalArgumentException("Number of lifts must be greater than 0");
                 return count;
             } catch (IllegalArgumentException e) {
                 if (mode == CommandMode.CLI_UserMode) {
                     System.out.println(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
-
-    public Integer readTransferredStudents(Integer defaultValue) {
-        while (true) {
-            try {
-                if (mode == CommandMode.CLI_UserMode) {
-                    String prompt = "Введите количество переведенных студентов";
-                    if (defaultValue != null) prompt += " (пробел для " + defaultValue + ")";
-                    System.out.print(prompt + " > ");
-                }
-                String input = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read transferred students: " + input + " (mode: " + mode + ")");
-                int count;
-                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
-                    count = defaultValue;
-                } else {
-                    count = Integer.parseInt(input);
-                }
-                if (count <= 0) throw new IllegalArgumentException("Количество должно быть больше 0");
-                return count;
-            } catch (IllegalArgumentException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
-
-    public FormOfEducation readFormOfEducation(FormOfEducation defaultValue) {
-        while (true) {
-            try {
-                if (mode == CommandMode.CLI_UserMode) {
-                    String prompt = "Выберите форму обучения";
-                    if (defaultValue != null) prompt += " (пробел для " + defaultValue + "):";
-                    else prompt += ":";
-                    System.out.println(prompt);
-                    for (FormOfEducation form : FormOfEducation.values()) {
-                        System.out.println(form.ordinal() + 1 + " — " + form);
-                    }
-                    System.out.print("> ");
-                }
-                String input = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read form of education: " + input + " (mode: " + mode + ")");
-                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
-                    return defaultValue;
-                }
-                try {
-                    int choice = Integer.parseInt(input);
-                    if (choice > 0 && choice <= FormOfEducation.values().length) {
-                        return FormOfEducation.values()[choice - 1];
-                    }
-                } catch (NumberFormatException ignored) {}
-                return FormOfEducation.valueOf(input);
-            } catch (IllegalArgumentException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка! Выберите существующий вариант");
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
-
-    public Person readGroupAdmin(Person defaultValue) {
-        try {
-            Person admin = new Person();
-            if (mode == CommandMode.CLI_UserMode) {
-                String namePrompt = "Введите имя администратора";
-                if (defaultValue != null && defaultValue.getName() != null) {
-                    namePrompt += " (пробел для '" + defaultValue.getName() + "')";
-                }
-                System.out.print(namePrompt + " > ");
-            }
-            String nameInput = scanner.nextLine().trim();
-            System.out.println("DEBUG: Read admin name: " + nameInput + " (mode: " + mode + ")");
-            if (mode != CommandMode.CLI_UserMode && nameInput.isEmpty() && defaultValue != null && defaultValue.getName() != null) {
-                admin.setName(defaultValue.getName());
-            } else {
-                admin.setName(nameInput);
-            }
-
-            if (mode == CommandMode.CLI_UserMode) {
-                String birthdayPrompt = "Введите дату рождения (в формате YYYY-MM-DD или пустую строку)";
-                if (defaultValue != null && defaultValue.getBirthday() != null) {
-                    birthdayPrompt += " (пробел для " + defaultValue.getBirthday() + ")";
-                }
-                System.out.println(birthdayPrompt + " > ");
-            }
-            String birthdayStr = scanner.nextLine().trim();
-            System.out.println("DEBUG: Read admin birthday: " + birthdayStr + " (mode: " + mode + ")");
-            if (mode != CommandMode.CLI_UserMode && birthdayStr.isEmpty() && defaultValue != null && defaultValue.getBirthday() != null) {
-                admin.setBirthday(defaultValue.getBirthday());
-            } else if (!birthdayStr.isEmpty()) {
-                admin.setBirthday(LocalDate.parse(birthdayStr));
-            }
-
-            if (mode == CommandMode.CLI_UserMode) {
-                String passportPrompt = "Введите номер паспорта (не более 26 символов или пустую строку)";
-                if (defaultValue != null && defaultValue.getPassportID() != null) {
-                    passportPrompt += " (пробел для '" + defaultValue.getPassportID() + "')";
-                }
-                System.out.println(passportPrompt + " > ");
-            }
-            String passportID = scanner.nextLine().trim();
-            System.out.println("DEBUG: Read admin passport: " + passportID + " (mode: " + mode + ")");
-            if (mode != CommandMode.CLI_UserMode && passportID.isEmpty() && defaultValue != null && defaultValue.getPassportID() != null) {
-                admin.setPassportID(defaultValue.getPassportID());
-            } else if (!passportID.isEmpty()) {
-                admin.setPassportID(passportID);
-            }
-
-            admin.setEyeColor(readEyeColor(defaultValue != null ? defaultValue.getEyeColor() : null));
-            admin.setLocation(readLocation(defaultValue != null ? defaultValue.getLocation() : null));
-
-            return admin;
-        } catch (IllegalArgumentException e) {
-            if (mode == CommandMode.CLI_UserMode) {
-                System.out.println("Ошибка: " + e.getMessage());
-                return readGroupAdmin(defaultValue);
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    public Color readEyeColor(Color defaultValue) {
-        while (true) {
-            try {
-                if (mode == CommandMode.CLI_UserMode) {
-                    String prompt = "Выберите цвет глаз";
-                    if (defaultValue != null) prompt += " (пробел для " + defaultValue + "):";
-                    else prompt += ":";
-                    System.out.println(prompt);
-                    for (Color color : Color.values()) {
-                        System.out.println(color.ordinal() + 1 + " — " + color);
-                    }
-                    System.out.print("> ");
-                }
-                String input = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read eye color: " + input + " (mode: " + mode + ")");
-                if (mode != CommandMode.CLI_UserMode && input.isEmpty() && defaultValue != null) {
-                    return defaultValue;
-                }
-                try {
-                    int choice = Integer.parseInt(input);
-                    if (choice > 0 && choice <= Color.values().length) {
-                        return Color.values()[choice - 1];
-                    }
-                } catch (NumberFormatException ignored) {}
-                return Color.valueOf(input);
-            } catch (IllegalArgumentException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка! Выберите существующий цвет");
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
-
-    public Location readLocation(Location defaultValue) {
-        while (true) {
-            try {
-                Float x, y, z;
-
-                if (mode == CommandMode.CLI_UserMode) {
-                    String xPrompt = "Введите координату X локации";
-                    if (defaultValue != null) xPrompt += " (пробел для " + defaultValue.getX() + ")";
-                    System.out.print(xPrompt + " > ");
-                }
-                String xInput = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read location X: " + xInput + " (mode: " + mode + ")");
-                x = (mode != CommandMode.CLI_UserMode && xInput.isEmpty() && defaultValue != null)
-                        ? defaultValue.getX()
-                        : Float.parseFloat(xInput);
-
-                if (mode == CommandMode.CLI_UserMode) {
-                    String yPrompt = "Введите координату Y локации";
-                    if (defaultValue != null) yPrompt += " (пробел для " + defaultValue.getY() + ")";
-                    System.out.print(yPrompt + " > ");
-                }
-                String yInput = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read location Y: " + yInput + " (mode: " + mode + ")");
-                y = (mode != CommandMode.CLI_UserMode && yInput.isEmpty() && defaultValue != null)
-                        ? defaultValue.getY()
-                        : Float.parseFloat(yInput);
-
-                if (mode == CommandMode.CLI_UserMode) {
-                    String zPrompt = "Введите координату Z локации";
-                    if (defaultValue != null) zPrompt += " (пробел для " + defaultValue.getZ() + ")";
-                    System.out.print(zPrompt + " > ");
-                }
-                String zInput = scanner.nextLine().trim();
-                System.out.println("DEBUG: Read location Z: " + zInput + " (mode: " + mode + ")");
-                z = (mode != CommandMode.CLI_UserMode && zInput.isEmpty() && defaultValue != null)
-                        ? defaultValue.getZ()
-                        : Float.parseFloat(zInput);
-
-                return new Location(x, y, z);
-            } catch (NumberFormatException e) {
-                if (mode == CommandMode.CLI_UserMode) {
-                    System.out.println("Ошибка! Введите корректные числа");
                 } else {
                     throw e;
                 }

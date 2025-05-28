@@ -1,77 +1,56 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
-import commandManagers.CommandManager;
 import commandManagers.CommandMode;
 import commandManagers.InputReader;
-import collectionManagers.StudyGroupCollectionManager;
-import models.*;
+import models.Flat;
+
 import java.util.Scanner;
-import java.time.LocalDate;
 
-public class Add extends Command {
-    private final CommandManager commandManager;
+/**
+ * Команда add добавляет новый элемент в коллекцию.
+ */
+public class Add extends Command<FlatCollectionManager> {
+    private final Scanner scanner;
+    private final InputReader inputReader;
 
-    public Add(StudyGroupCollectionManager collectionManager, Scanner scanner, CommandManager commandManager) {
-        super(false, collectionManager);
-        this.commandManager = commandManager;
+    public Add(FlatCollectionManager collectionManager, Scanner scanner) {
+        super(collectionManager);
+        this.scanner = scanner;
+        this.inputReader = new InputReader(scanner, CommandMode.CLI_UserMode);
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "add";
     }
 
     @Override
-    public String getDescr() {
+    public String getDescription() {
         return "добавить новый элемент в коллекцию";
     }
 
     @Override
-    public void execute() {
-        try {
-            InputReader inputReader = new InputReader(commandManager.getScanner(), commandManager.getCurrentMode());
-
-            StudyGroup studyGroup = new StudyGroup();
-
-            if (commandManager.getCurrentMode() == CommandMode.CLI_UserMode) {
-                // Интерактивный режим с повторными попытками
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setName(inputReader.readName(null)), "название группы");
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setCoordinates(inputReader.readCoordinates(null)), "координаты");
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setStudentsCount(inputReader.readStudentsCount(null)), "количество студентов");
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setExpelledStudents(inputReader.readExpelledStudents(null)), "отчисленные студенты");
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setTransferredStudents(inputReader.readTransferredStudents(null)), "переведенные студенты");
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setFormOfEducation(inputReader.readFormOfEducation(null)), "форма обучения");
-                inputReader.SetFieldWithRetry(studyGroup, () -> studyGroup.setGroupAdmin(inputReader.readGroupAdmin(null)), "администратор группы");
-            } else {
-                // Режим чтения из файла - без повторных попыток
-                try {
-                    studyGroup.setName(inputReader.readName(null));
-                    studyGroup.setCoordinates(inputReader.readCoordinates(null));
-                    studyGroup.setStudentsCount(inputReader.readStudentsCount(null));
-                    studyGroup.setExpelledStudents(inputReader.readExpelledStudents(null));
-                    studyGroup.setTransferredStudents(inputReader.readTransferredStudents(null));
-                    studyGroup.setFormOfEducation(inputReader.readFormOfEducation(null));
-                    studyGroup.setGroupAdmin(inputReader.readGroupAdmin(null));
-                } catch (Exception e) {
-                    System.out.println("Ошибка при чтении данных из файла: " + e.getMessage());
-                    return;
-                }
-            }
-
-            collectionManager.add(studyGroup);
-            System.out.println("Элемент успешно добавлен в коллекцию");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Ошибка: " + e.getMessage());
-            if (commandManager.getCurrentMode() == CommandMode.CLI_UserMode) {
-                execute();
-            }
-        }
+    public boolean checkArgument(String[] args) {
+        return args.length == 0;
     }
 
     @Override
-    public boolean checkArgument(Object argument) {
-        return true;
+    public void execute(String[] args) {
+        Flat flat = new Flat();
+        
+        inputReader.setFieldWithRetry(flat, () -> flat.setName(inputReader.readName(null)), "name");
+        inputReader.setFieldWithRetry(flat, () -> flat.setCoordinates(inputReader.readCoordinates(null)), "coordinates");
+        inputReader.setFieldWithRetry(flat, () -> flat.setArea(inputReader.readArea(null)), "area");
+        inputReader.setFieldWithRetry(flat, () -> flat.setNumberOfRooms(inputReader.readNumberOfRooms(null)), "numberOfRooms");
+        inputReader.setFieldWithRetry(flat, () -> flat.setFurnish(inputReader.readFurnish(null)), "furnish");
+        inputReader.setFieldWithRetry(flat, () -> flat.setView(inputReader.readView(null)), "view");
+        inputReader.setFieldWithRetry(flat, () -> flat.setTransport(inputReader.readTransport(null)), "transport");
+        inputReader.setFieldWithRetry(flat, () -> flat.setHouse(inputReader.readHouse(null)), "house");
+
+        collectionManager.addFlat(flat);
+        System.out.println("Элемент успешно добавлен в коллекцию");
     }
 }
 

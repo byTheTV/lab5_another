@@ -1,32 +1,33 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
-import collectionManagers.StudyGroupCollectionManager;
 
-public class Info extends Command {
-    public Info(StudyGroupCollectionManager collectionManager) {
-        super(false, collectionManager);
+/**
+ * Команда info выводит информацию о коллекции.
+ */
+public class Info extends Command<FlatCollectionManager> {
+    public Info(FlatCollectionManager collectionManager) {
+        super(collectionManager);
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "info";
     }
 
     @Override
-    public String getDescr() {
+    public String getDescription() {
         return "вывести информацию о коллекции";
     }
 
     @Override
-    public void execute() {
-        System.out.println("Тип коллекции: " + collectionManager.getCollectionType());
-        System.out.println("Дата инициализации: " + collectionManager.getCreationDate());
-        System.out.println("Количество элементов: " + collectionManager.getSize());
+    public boolean checkArgument(String[] args) {
+        return args.length == 0;
     }
 
     @Override
-    public boolean checkArgument(Object argument) {
-        return true;
+    public void execute(String[] args) {
+        System.out.println(collectionManager.getInfo());
     }
 } 

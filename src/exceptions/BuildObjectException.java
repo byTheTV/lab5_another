@@ -14,4 +14,8 @@ public class BuildObjectException extends Exception {
     {
         super(message);
     }
+
+    public BuildObjectException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

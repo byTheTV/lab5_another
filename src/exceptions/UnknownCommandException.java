@@ -13,4 +13,8 @@ public class UnknownCommandException extends Exception {
     {
         super(message);
     }
+
+    public UnknownCommandException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

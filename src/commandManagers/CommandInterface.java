@@ -8,31 +8,27 @@ import exceptions.BuildObjectException;
 public interface CommandInterface {
 
     /**
-     * Выполняет команду.
-     *
-     * @throws BuildObjectException если происходит ошибка при построении объекта.
-     */
-    void execute() throws BuildObjectException;
-
-    /**
-     * Base method for show command name
-     *
-     * @return command name
+     * Returns the name of the command.
+     * @return the command name
      */
     String getName();
 
     /**
-     * Base method for show command description.
-     *
-     * @return command description
+     * Returns the description of the command.
+     * @return the command description
      */
     String getDescr();
 
     /**
-     * Checks if the provided argument is valid for the command.
-     *
-     * @param argument the argument to check for validity
+     * Executes the command.
+     * @throws BuildObjectException if there is an error building an object required by the command
+     */
+    void execute() throws BuildObjectException;
+
+    /**
+     * Checks if the given argument is valid for this command.
+     * @param inputArgument the argument to check
      * @return true if the argument is valid, false otherwise
      */
-    boolean checkArgument(Object argument);
+    boolean checkArgument(Object inputArgument);
 }

@@ -1,36 +1,34 @@
 package commandManagers.commands;
 
+import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
-import collectionManagers.StudyGroupCollectionManager;
 
 /**
- * Команда exit: завершает работу программы без сохранения в файл.
+ * Команда exit завершает программу (без сохранения).
  */
-public class Exit extends Command {
-
-    public Exit(StudyGroupCollectionManager collectionManager) {
-        super(false, collectionManager);
+public class Exit extends Command<FlatCollectionManager> {
+    public Exit() {
+        super(null);
     }
-    
+
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "exit";
     }
-    
+
     @Override
-    public String getDescr() {
-        return "завершить программу (без сохранения в файл)";
+    public String getDescription() {
+        return "завершить программу (без сохранения)";
     }
-    
+
     @Override
-    public void execute() {
-        System.out.println("Завершение программы без сохранения...");
+    public boolean checkArgument(String[] args) {
+        return args.length == 0;
+    }
+
+    @Override
+    public void execute(String[] args) {
+        System.out.println("Завершение программы...");
         System.exit(0);
-    }
-    
-    @Override
-    public boolean checkArgument(Object argument) {
-        // Команда не требует аргументов
-        return true;
     }
 } 
