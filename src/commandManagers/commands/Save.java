@@ -4,9 +4,11 @@ import collectionManagers.FlatCollectionManager;
 import commandManagers.Command;
 
 /**
- * Команда save сохраняет коллекцию в файл.
+ * Команда для сохранения коллекции в файл
  */
 public class Save extends Command<FlatCollectionManager> {
+    private static final String DEFAULT_FILE = "data/collection.xml";
+
     public Save(FlatCollectionManager collectionManager) {
         super(collectionManager);
     }
@@ -28,7 +30,11 @@ public class Save extends Command<FlatCollectionManager> {
 
     @Override
     public void execute(String[] args) {
-        collectionManager.saveCollection("collection.xml");
-        System.out.println("Коллекция успешно сохранена в файл");
+        try {
+            collectionManager.saveCollection(DEFAULT_FILE);
+            System.out.println("Коллекция успешно сохранена в файл: " + DEFAULT_FILE);
+        } catch (Exception e) {
+            System.err.println("Ошибка при сохранении коллекции: " + e.getMessage());
+        }
     }
 } 

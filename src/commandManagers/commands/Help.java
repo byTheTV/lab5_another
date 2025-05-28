@@ -38,7 +38,7 @@ public class Help extends Command<FlatCollectionManager> {
         System.out.println("info : вывести информацию о коллекции");
         System.out.println("show : вывести все элементы коллекции");
         System.out.println("add : добавить новый элемент в коллекцию");
-        System.out.println("update_id {id} : обновить значение элемента коллекции по id");
+        System.out.println("update {id} : обновить значение элемента коллекции по id");
         System.out.println("remove_by_id {id} : удалить элемент из коллекции по его id");
         System.out.println("clear : очистить коллекцию");
         System.out.println("save : сохранить коллекцию в файл");

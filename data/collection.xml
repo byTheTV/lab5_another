@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flats>
+    <flat>
+        <id>1</id>
+        <name>Квартира в центре</name>
+        <coordinates>
+            <x>100</x>
+            <y>200</y>
+        </coordinates>
+        <area>75.5</area>
+        <numberOfRooms>3</numberOfRooms>
+        <furnish>DESIGNER</furnish>
+        <view>STREET</view>
+        <transport>FEW</transport>
+        <house>
+            <name>ЖК Центральный</name>
+            <year>975</year>
+            <numberOfFlatsOnFloor>4</numberOfFlatsOnFloor>
+            <numberOfLifts>2</numberOfLifts>
+        </house>
+        <creationDate>2024-03-20T10:00:00.000+0300</creationDate>
+    </flat>
+    <flat>
+        <id>2</id>
+        <name>Студия на окраине</name>
+        <coordinates>
+            <x>300</x>
+            <y>400</y>
+        </coordinates>
+        <area>35.0</area>
+        <numberOfRooms>1</numberOfRooms>
+        <furnish>NONE</furnish>
+        <view>GOOD</view>
+        <transport>NONE</transport>
+        <house>
+            <name>ЖК Спокойный</name>
+            <year>850</year>
+            <numberOfFlatsOnFloor>6</numberOfFlatsOnFloor>
+            <numberOfLifts>1</numberOfLifts>
+        </house>
+        <creationDate>2024-03-20T10:30:00.000+0300</creationDate>
+    </flat>
+</flats> 

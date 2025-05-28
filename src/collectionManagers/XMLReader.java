@@ -1,5 +1,16 @@
 package collectionManagers;
 
+import java.io.FileInputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import models.Coordinates;
 import models.Flat;
 import models.Furnish;
@@ -7,174 +18,141 @@ import models.House;
 import models.Transport;
 import models.View;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 public class XMLReader {
-    private final String filePath;
     private final SimpleDateFormat dateFormat;
 
-    public XMLReader(String filePath) {
-        this.filePath = filePath;
+    public XMLReader() {
         this.dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     }
 
-    public List<Flat> read() throws FileNotFoundException, XMLStreamException {
-        List<Flat> flats = new ArrayList<>();
+    public List<Flat> read(String filePath) throws Exception {
         XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLStreamReader reader = factory.createXMLStreamReader(new FileInputStream(filePath));
-
-        Flat currentFlat = null;
-        String currentElement = null;
-        String currentName = null;
-        Long currentX = null;
-        Long currentY = null;
-        Float currentArea = null;
-        Long currentNumberOfRooms = null;
-        Furnish currentFurnish = null;
-        View currentView = null;
-        Transport currentTransport = null;
-        String houseName = null;
-        Integer houseYear = null;
-        Long houseNumberOfFlatsOnFloor = null;
-        Integer houseNumberOfLifts = null;
-        Date currentCreationDate = null;
+        List<Flat> flats = new ArrayList<>();
 
         while (reader.hasNext()) {
             int event = reader.next();
-            switch (event) {
-                case XMLStreamConstants.START_ELEMENT:
-                    currentElement = reader.getLocalName();
-                    break;
-
-                case XMLStreamConstants.CHARACTERS:
-                    if (currentElement != null) {
-                        String text = reader.getText().trim();
-                        if (!text.isEmpty()) {
-                            switch (currentElement) {
-                                case "id":
-                                    if (currentFlat == null) {
-                                        // We'll create the Flat object when we have all required fields
-                                        currentFlat = new Flat("", new Coordinates(0, 0L), 0, 0, null, null, null, null);
-                                        currentFlat.setId(Long.parseLong(text));
-                                    } else {
-                                        currentFlat.setId(Long.parseLong(text));
-                                    }
-                                    break;
-                                case "name":
-                                    currentName = text;
-                                    break;
-                                case "x":
-                                    currentX = Long.parseLong(text);
-                                    break;
-                                case "y":
-                                    currentY = Long.parseLong(text);
-                                    break;
-                                case "area":
-                                    currentArea = Float.parseFloat(text);
-                                    break;
-                                case "numberOfRooms":
-                                    currentNumberOfRooms = Long.parseLong(text);
-                                    break;
-                                case "furnish":
-                                    currentFurnish = Furnish.valueOf(text);
-                                    break;
-                                case "view":
-                                    currentView = View.valueOf(text);
-                                    break;
-                                case "transport":
-                                    currentTransport = Transport.valueOf(text);
-                                    break;
-                                case "year":
-                                    houseYear = Integer.parseInt(text);
-                                    break;
-                                case "numberOfFlatsOnFloor":
-                                    houseNumberOfFlatsOnFloor = Long.parseLong(text);
-                                    break;
-                                case "numberOfLifts":
-                                    houseNumberOfLifts = Integer.parseInt(text);
-                                    break;
-                                case "creationDate":
-                                    try {
-                                        currentCreationDate = dateFormat.parse(text);
-                                    } catch (ParseException e) {
-                                        throw new XMLStreamException("Invalid date format: " + text, e);
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                    break;
-
-                case XMLStreamConstants.END_ELEMENT:
-                    String endElement = reader.getLocalName();
-                    switch (endElement) {
-                        case "coordinates":
-                            if (currentX != null && currentY != null) {
-                                Coordinates coordinates = new Coordinates(currentX, currentY);
-                                currentFlat.setCoordinates(coordinates);
-                                currentX = null;
-                                currentY = null;
-                            }
-                            break;
-                        case "house":
-                            if (houseName != null && houseYear != null && houseNumberOfFlatsOnFloor != null && houseNumberOfLifts != null) {
-                                House house = new House(houseName, houseYear, houseNumberOfFlatsOnFloor, houseNumberOfLifts);
-                                currentFlat.setHouse(house);
-                                houseName = null;
-                                houseYear = null;
-                                houseNumberOfFlatsOnFloor = null;
-                                houseNumberOfLifts = null;
-                            }
-                            break;
-                        case "flat":
-                            if (currentFlat != null) {
-                                if (currentName != null) {
-                                    currentFlat.setName(currentName);
-                                }
-                                if (currentArea != null) {
-                                    currentFlat.setArea(currentArea);
-                                }
-                                if (currentNumberOfRooms != null) {
-                                    currentFlat.setNumberOfRooms(currentNumberOfRooms);
-                                }
-                                if (currentFurnish != null) {
-                                    currentFlat.setFurnish(currentFurnish);
-                                }
-                                if (currentView != null) {
-                                    currentFlat.setView(currentView);
-                                }
-                                if (currentTransport != null) {
-                                    currentFlat.setTransport(currentTransport);
-                                }
-                                if (currentCreationDate != null) {
-                                    currentFlat.setCreationDate(currentCreationDate);
-                                }
-                                flats.add(currentFlat);
-                                currentFlat = null;
-                                currentName = null;
-                                currentArea = null;
-                                currentNumberOfRooms = null;
-                                currentFurnish = null;
-                                currentView = null;
-                                currentTransport = null;
-                                currentCreationDate = null;
-                            }
-                            break;
-                    }
-                    break;
+            if (event == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("flat")) {
+                flats.add(parseFlat(reader));
             }
         }
+
         reader.close();
         return flats;
+    }
+
+    private Flat parseFlat(XMLStreamReader reader) throws XMLStreamException, ParseException {
+        Flat flat = new Flat();
+        Coordinates coordinates = null;
+        House house = null;
+
+        while (reader.hasNext()) {
+            int event = reader.next();
+            if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("flat")) {
+                break;
+            }
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                String elementName = reader.getLocalName();
+                reader.next();
+                String value = reader.getText().trim();
+
+                switch (elementName) {
+                    case "id":
+                        flat.setId(Long.parseLong(value));
+                        break;
+                    case "name":
+                        flat.setName(value);
+                        break;
+                    case "coordinates":
+                        coordinates = parseCoordinates(reader);
+                        flat.setCoordinates(coordinates);
+                        break;
+                    case "area":
+                        flat.setArea(Float.parseFloat(value));
+                        break;
+                    case "numberOfRooms":
+                        flat.setNumberOfRooms(Long.parseLong(value));
+                        break;
+                    case "furnish":
+                        flat.setFurnish(Furnish.valueOf(value));
+                        break;
+                    case "view":
+                        flat.setView(View.valueOf(value));
+                        break;
+                    case "transport":
+                        flat.setTransport(Transport.valueOf(value));
+                        break;
+                    case "house":
+                        house = parseHouse(reader);
+                        flat.setHouse(house);
+                        break;
+                    case "creationDate":
+                        flat.setCreationDate(dateFormat.parse(value));
+                        break;
+                }
+            }
+        }
+
+        return flat;
+    }
+
+    private Coordinates parseCoordinates(XMLStreamReader reader) throws XMLStreamException {
+        long x = 0;
+        long y = 0;
+        while (reader.hasNext()) {
+            int event = reader.next();
+            if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("coordinates")) {
+                break;
+            }
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                String elementName = reader.getLocalName();
+                reader.next();
+                String value = reader.getText().trim();
+
+                switch (elementName) {
+                    case "x":
+                        x = Long.parseLong(value);
+                        break;
+                    case "y":
+                        y = Long.parseLong(value);
+                        break;
+                }
+            }
+        }
+        return new Coordinates(x, y);
+    }
+
+    private House parseHouse(XMLStreamReader reader) throws XMLStreamException {
+        String name = "";
+        Integer year = null;
+        long numberOfFlatsOnFloor = 0;
+        Integer numberOfLifts = null;
+        while (reader.hasNext()) {
+            int event = reader.next();
+            if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("house")) {
+                break;
+            }
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                String elementName = reader.getLocalName();
+                reader.next();
+                String value = reader.getText().trim();
+
+                switch (elementName) {
+                    case "name":
+                        name = value;
+                        break;
+                    case "year":
+                        year = Integer.parseInt(value);
+                        break;
+                    case "numberOfFlatsOnFloor":
+                        numberOfFlatsOnFloor = Long.parseLong(value);
+                        break;
+                    case "numberOfLifts":
+                        numberOfLifts = Integer.parseInt(value);
+                        break;
+                }
+            }
+        }
+        return new House(name, year, numberOfFlatsOnFloor, numberOfLifts);
     }
 } 

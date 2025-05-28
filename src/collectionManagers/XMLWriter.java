@@ -1,7 +1,6 @@
 package collectionManagers;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -14,15 +13,13 @@ import models.Flat;
 import models.House;
 
 public class XMLWriter {
-    private final String filePath;
     private final SimpleDateFormat dateFormat;
 
-    public XMLWriter(String filePath) {
-        this.filePath = filePath;
+    public XMLWriter() {
         this.dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     }
 
-    public void write(List<Flat> flats) throws XMLStreamException, IOException {
+    public void write(List<Flat> flats, String filePath) throws Exception {
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
         XMLStreamWriter writer = factory.createXMLStreamWriter(new FileOutputStream(filePath));
 
@@ -60,15 +57,15 @@ public class XMLWriter {
         writer.writeEndElement();
 
         writer.writeStartElement("furnish");
-        writer.writeCharacters(flat.getFurnish().toString());
+        writer.writeCharacters(String.valueOf(flat.getFurnish()));
         writer.writeEndElement();
 
         writer.writeStartElement("view");
-        writer.writeCharacters(flat.getView().toString());
+        writer.writeCharacters(String.valueOf(flat.getView()));
         writer.writeEndElement();
 
         writer.writeStartElement("transport");
-        writer.writeCharacters(flat.getTransport().toString());
+        writer.writeCharacters(String.valueOf(flat.getTransport()));
         writer.writeEndElement();
 
         writeHouse(writer, flat.getHouse());
@@ -96,10 +93,6 @@ public class XMLWriter {
 
     private void writeHouse(XMLStreamWriter writer, House house) throws XMLStreamException {
         writer.writeStartElement("house");
-
-        writer.writeStartElement("name");
-        writer.writeCharacters(house.getName());
-        writer.writeEndElement();
 
         writer.writeStartElement("year");
         writer.writeCharacters(String.valueOf(house.getYear()));

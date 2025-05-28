@@ -1,7 +1,8 @@
+import java.io.File;
 import java.util.Scanner;
 
 import collectionManagers.FlatCollectionManager;
-import commandManagers.CommandManager;
+import commandManagers.CommandExecutor;
 
 /**
  * Точка входа в приложение.
@@ -24,6 +25,7 @@ import commandManagers.CommandManager;
  *
  */
 public class Main {
+    private static final String DATA_FILE = "data/collection.xml";
 
     /**
      * Основной метод приложения.
@@ -33,34 +35,25 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            // Initialize collection manager
-            FlatCollectionManager collectionManager = new FlatCollectionManager();
-            
-            // Initialize scanner for user input
-            Scanner scanner = new Scanner(System.in);
-            
-            // Initialize command manager
-            CommandManager commandManager = new CommandManager(collectionManager, scanner);
-            
-            // Main program loop
-            while (true) {
-                try {
-                    System.out.print("> ");
-                    String input = scanner.nextLine().trim();
-                    
-                    if (input.isEmpty()) {
-                        continue;
-                    }
-                    
-                    commandManager.executeCommand(input);
-                } catch (Exception e) {
-                    System.err.println("Error: " + e.getMessage());
-                }
+            // Проверяем существование файла с данными
+            File dataFile = new File(DATA_FILE);
+            if (!dataFile.exists()) {
+                System.err.println("Ошибка: Файл с данными не найден: " + DATA_FILE);
+                return;
             }
+
+            // Создаем менеджер коллекции и загружаем данные
+            FlatCollectionManager collectionManager = new FlatCollectionManager();
+            collectionManager.loadCollection(DATA_FILE);
+
+            // Создаем исполнитель команд и запускаем его
+            Scanner scanner = new Scanner(System.in);
+            CommandExecutor executor = new CommandExecutor(collectionManager, scanner);
+            executor.startExecuting(System.in);
+
         } catch (Exception e) {
-            System.err.println("Fatal error: " + e.getMessage());
+            System.err.println("Ошибка при запуске программы: " + e.getMessage());
             e.printStackTrace();
-            System.exit(1);
         }
     }
 } 

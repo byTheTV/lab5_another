@@ -1,35 +1,42 @@
 package collectionManagers;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 
 import models.Flat;
 import models.House;
 
 public class FlatCollectionManager {
-    private Set<Flat> flatCollection = new LinkedHashSet<>();
+    private TreeMap<Long, Flat> flatCollection;
     private Date initializationDate;
+    private final XMLReader xmlReader;
+    private final XMLWriter xmlWriter;
     private long nextId = 1;
 
     public FlatCollectionManager() {
+        this.flatCollection = new TreeMap<>();
         this.initializationDate = new Date();
+        this.xmlReader = new XMLReader();
+        this.xmlWriter = new XMLWriter();
     }
 
     public void addFlat(Flat flat) {
         flat.setId(generateNextId());
-        flatCollection.add(flat);
+        flatCollection.put(flat.getId(), flat);
     }
 
     public void showCollection() {
         if (flatCollection.isEmpty()) {
             System.out.println("Collection is empty.");
         } else {
-            flatCollection.forEach(System.out::println);
+            flatCollection.values().forEach(System.out::println);
         }
     }
 
@@ -41,7 +48,7 @@ public class FlatCollectionManager {
 
     private long generateNextId() {
         // Ensure uniqueness even if elements are removed
-        long currentMaxId = flatCollection.stream()
+        long currentMaxId = flatCollection.values().stream()
                                         .map(Flat::getId)
                                         .filter(id -> id != null)
                                         .max(Long::compareTo)
@@ -51,26 +58,37 @@ public class FlatCollectionManager {
     }
 
     public boolean updateFlat(Long id, Flat updatedFlat) {
-        Optional<Flat> existingFlat = flatCollection.stream()
-                                                    .filter(flat -> flat.getId() != null && flat.getId().equals(id))
-                                                    .findFirst();
+        Optional<Flat> existingFlat = Optional.ofNullable(flatCollection.get(id));
         if (existingFlat.isPresent()) {
-            // In a real implementation, you would copy properties from updatedFlat to existingFlat
-            // or replace the object entirely. Replacing requires removing and re-adding to the Set.
             Flat flatToUpdate = existingFlat.get();
-            // Example (requires thoughtful implementation to maintain ID and creationDate):
-            // flatToUpdate.setName(updatedFlat.getName());
-            // ... copy other fields ...
-            System.out.println("Flat with id " + id + " found. Update logic needs to be implemented.");
+            // Сохраняем оригинальные id и дату создания
+            Long originalId = flatToUpdate.getId();
+            Date originalCreationDate = flatToUpdate.getCreationDate();
+            
+            // Копируем все поля из обновленной квартиры
+            flatToUpdate.setName(updatedFlat.getName());
+            flatToUpdate.setCoordinates(updatedFlat.getCoordinates());
+            flatToUpdate.setArea(updatedFlat.getArea());
+            flatToUpdate.setNumberOfRooms(updatedFlat.getNumberOfRooms());
+            flatToUpdate.setFurnish(updatedFlat.getFurnish());
+            flatToUpdate.setView(updatedFlat.getView());
+            flatToUpdate.setTransport(updatedFlat.getTransport());
+            flatToUpdate.setHouse(updatedFlat.getHouse());
+            
+            // Восстанавливаем оригинальные id и дату создания
+            flatToUpdate.setId(originalId);
+            flatToUpdate.setCreationDate(originalCreationDate);
+            
+            System.out.println("Элемент с id " + id + " успешно обновлен");
             return true;
         } else {
-            System.out.println("Flat with id " + id + " not found.");
+            System.out.println("Элемент с id " + id + " не найден");
             return false;
         }
     }
 
     public boolean removeFlatById(Long id) {
-        return flatCollection.removeIf(flat -> flat.getId() != null && flat.getId().equals(id));
+        return flatCollection.remove(id) != null;
     }
 
     public void clearCollection() {
@@ -78,9 +96,27 @@ public class FlatCollectionManager {
         System.out.println("Collection cleared.");
     }
 
-    public void saveCollection(String filePath) {
-        // Saving logic needs to be implemented (e.g., to JSON, XML, etc.)
-        System.out.println("Save command not fully implemented.");
+    /**
+     * Загружает коллекцию из XML файла
+     * @param filePath путь к XML файлу
+     * @throws Exception если произошла ошибка при чтении файла
+     */
+    public void loadCollection(String filePath) throws Exception {
+        List<Flat> flats = xmlReader.read(filePath);
+        flatCollection.clear();
+        for (Flat flat : flats) {
+            flatCollection.put(flat.getId(), flat);
+        }
+        System.out.println("Загружено " + flatCollection.size() + " элементов");
+    }
+
+    /**
+     * Сохраняет коллекцию в XML файл
+     * @param filePath путь к XML файлу
+     * @throws Exception если произошла ошибка при записи файла
+     */
+    public void saveCollection(String filePath) throws Exception {
+        xmlWriter.write(new ArrayList<>(flatCollection.values()), filePath);
     }
 
     public void executeScript(String filePath) {
@@ -93,7 +129,7 @@ public class FlatCollectionManager {
             System.out.println("Invalid index.");
             return false;
         }
-        Iterator<Flat> iterator = flatCollection.iterator();
+        Iterator<Flat> iterator = flatCollection.values().iterator();
         for (int i = 0; i < index; i++) {
             iterator.next();
         }
@@ -103,12 +139,12 @@ public class FlatCollectionManager {
 
     public void addIfMin(Flat flat) {
         // Comparison logic for Flat needs to be defined and implemented
-        Optional<Flat> minFlat = flatCollection.stream()
+        Optional<Flat> minFlat = flatCollection.values().stream()
                                               .min(Comparator.comparing(Flat::getId)); // Example comparison by ID
 
         if (minFlat.isEmpty() || compareFlats(flat, minFlat.get()) < 0) {
              flat.setId(generateNextId());
-             flatCollection.add(flat);
+             flatCollection.put(flat.getId(), flat);
              System.out.println("Flat added as it is less than the minimum.");
         } else {
              System.out.println("Flat not added as it is not less than the minimum.");
@@ -117,7 +153,7 @@ public class FlatCollectionManager {
 
     public void removeLower(Flat flat) {
          // Comparison logic for Flat needs to be defined and implemented
-        boolean removed = flatCollection.removeIf(f -> compareFlats(f, flat) < 0);
+        boolean removed = flatCollection.values().removeIf(f -> compareFlats(f, flat) < 0);
         if (removed) {
             System.out.println("Removed elements lower than the given flat.");
         } else {
@@ -126,7 +162,7 @@ public class FlatCollectionManager {
     }
 
     public Flat findMinById() {
-        return flatCollection.stream()
+        return flatCollection.values().stream()
                              .filter(flat -> flat.getId() != null)
                              .min(Comparator.comparing(Flat::getId))
                              .orElse(null);
@@ -134,7 +170,7 @@ public class FlatCollectionManager {
 
     public long countLessThanHouse(House house) {
         // Comparison logic for House needs to be defined and implemented
-        return flatCollection.stream()
+        return flatCollection.values().stream()
                              .filter(flat -> flat.getHouse() != null)
                              .filter(flat -> compareHouses(flat.getHouse(), house) < 0) // Example comparison
                              .count();
@@ -142,7 +178,7 @@ public class FlatCollectionManager {
 
     public Set<House> printUniqueHouses() {
         Set<House> uniqueHouses = new HashSet<>();
-        flatCollection.stream()
+        flatCollection.values().stream()
                       .map(Flat::getHouse)
                       .filter(h -> h != null)
                       .forEach(uniqueHouses::add);
